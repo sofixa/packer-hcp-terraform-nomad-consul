@@ -58,3 +58,11 @@ output "nomad_servers_cluster_tag_value" {
   value = module.servers.cluster_tag_value
 }
 
+output "server_public_ips" {
+  value = data.aws_instances.nomad_servers.public_ips
+}
+
+output "client_public_ips" {
+  value = data.aws_instances.nomad_clients.public_ips
+}
+

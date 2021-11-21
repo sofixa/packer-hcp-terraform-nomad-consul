@@ -12,13 +12,15 @@
 # REQUIRE A SPECIFIC TERRAFORM VERSION OR HIGHER
 # ----------------------------------------------------------------------------------------------------------------------
 terraform {
-  # This module is now only being tested with Terraform 1.0.x. However, to make upgrading easier, we are setting
-  # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
-  # forwards compatible with 1.0.x code.
   required_version = ">= 0.12.26"
 }
 
 provider "hcp" {}
+
+provider "aws" {
+  region = "eu-west-1"
+}
+
 
 data "hcp_packer_iteration" "ubuntu_nomad_consul_docker" {
   bucket_name = "nomad-consul-docker"
@@ -38,7 +40,7 @@ data "hcp_packer_image" "ubuntu_eu_west_1" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "servers" {
-  source = "github.com/hashicorp/terraform-aws-consul//modules/consul-cluster?ref=v0.8.0"
+  source = "./modules/consul-cluster"
 
   cluster_name  = "${var.cluster_name}-server"
   cluster_size  = var.num_servers
@@ -77,9 +79,6 @@ module "servers" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "nomad_security_group_rules" {
-  # When using these modules in your own templates, you will need to use a Git URL with a ref attribute that pins you
-  # to a specific version of the modules, such as the following example:
-  # source = "github.com/hashicorp/terraform-aws-nomad//modules/nomad-security-group-rules?ref=v0.0.1"
   source = "./modules/nomad-security-group-rules"
 
   # To make testing easier, we allow requests from any IP address here but in a production deployment, we strongly
@@ -109,9 +108,6 @@ data "template_file" "user_data_server" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "clients" {
-  # When using these modules in your own templates, you will need to use a Git URL with a ref attribute that pins you
-  # to a specific version of the modules, such as the following example:
-  # source = "github.com/hashicorp/terraform-aws-nomad//modules/nomad-cluster?ref=v0.0.1"
   source = "./modules/nomad-cluster"
 
   cluster_name  = "${var.cluster_name}-client"
@@ -125,7 +121,7 @@ module "clients" {
   # policies to dynamically resize the cluster in response to load.
   min_size = var.num_clients
 
-  max_size         = var.num_clients
+  max_size         = var.num_clients + 1
   desired_capacity = var.num_clients
 
   ami_id    = data.hcp_packer_image.ubuntu_eu_west_1.cloud_image_id  
@@ -192,5 +188,26 @@ data "aws_subnet_ids" "default" {
   vpc_id = data.aws_vpc.default.id
 }
 
-data "aws_region" "current" {
+data "aws_region" "current" {}
+
+
+data "aws_instances" "nomad_servers" {
+  instance_tags = {
+    (module.servers.cluster_tag_key) = module.servers.cluster_tag_value
+  }
+
+  instance_state_names = ["running"]
+
+  depends_on = [module.servers]
 }
+
+data "aws_instances" "nomad_clients" {
+  instance_tags = {
+    (module.clients.cluster_tag_key) = module.clients.cluster_tag_value
+  }
+
+  instance_state_names = ["running"]
+
+  depends_on = [module.clients]
+}
+
