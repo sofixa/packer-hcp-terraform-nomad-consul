@@ -3,6 +3,7 @@ set -e
 
 SCRIPT=`basename "$0"`
 
+sudo apt-get update
 sudo apt-get -y install apt-transport-https ca-certificates curl software-properties-common
 
 # Using Docker CE directly provided by Docker
