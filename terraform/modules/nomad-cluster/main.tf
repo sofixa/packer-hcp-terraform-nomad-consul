@@ -30,6 +30,13 @@ resource "aws_autoscaling_group" "autoscaling_group" {
 
   protect_from_scale_in = var.protect_from_scale_in
 
+  instance_refresh {
+    strategy = "Rolling"
+    preferences {
+      min_healthy_percentage = 50 # half of two
+    }
+  }
+
   tag {
     key                 = "Name"
     value               = var.cluster_name
