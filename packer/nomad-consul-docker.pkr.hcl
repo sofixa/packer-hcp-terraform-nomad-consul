@@ -23,6 +23,10 @@ variable "nomad_version" {
   default = "1.2.0"
 }
 
+variable "subnet_id" {
+  default = "subnet-f958429b"
+}
+
 # "timestamp" template function replacement
 locals { timestamp = regex_replace(timestamp(), "[- TZ:]", "") }
 
@@ -31,6 +35,7 @@ source "amazon-ebs" "ubuntu-2004-arm64-ami" {
   ami_name        = "${var.ami_name_prefix}-docker-ubuntu-2004-arm64-${local.timestamp}"
   instance_type   = "t4g.nano"
   region          = "${var.aws_region}"
+  subnet_id       = "${var.subnet_id}"
   source_ami_filter {
     filters = {
       name                = "ubuntu/images/hvm-ssd/ubuntu-focal-20.04-arm64-server-*"
