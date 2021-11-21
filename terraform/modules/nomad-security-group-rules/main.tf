@@ -56,3 +56,14 @@ resource "aws_security_group_rule" "allow_serf_udp_inbound" {
   security_group_id = var.security_group_id
 }
 
+resource "aws_security_group_rule" "allow_public_http_inbound" {
+  count       = length(var.allowed_inbound_cidr_blocks) >= 1 ? 1 : 0
+  type        = "ingress"
+  from_port   = var.public_http_port
+  to_port     = var.public_http_port
+  protocol    = "tcp"
+  cidr_blocks = var.allowed_inbound_cidr_blocks
+
+  security_group_id = var.security_group_id
+}
+

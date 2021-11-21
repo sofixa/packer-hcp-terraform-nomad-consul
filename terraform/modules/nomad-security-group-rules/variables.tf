@@ -36,3 +36,8 @@ variable "serf_port" {
   default     = 4648
 }
 
+variable "public_http_port" {
+  description = "Port for Public Inbound HTTP"
+  type        = number
+  default     = "8080"
+}
