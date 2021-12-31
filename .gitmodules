@@ -1,0 +1,6 @@
+[submodule "terraform-aws-consul"]
+	path = terraform-aws-consul
+	url = git@github.com:hashicorp/terraform-aws-consul.git
+[submodule "terraform-aws-nomad"]
+	path = terraform-aws-nomad
+	url = git@github.com:hashicorp/terraform-aws-nomad.git
